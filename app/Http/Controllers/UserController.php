@@ -24,7 +24,7 @@ class UserController extends Controller
     }
 
     public function loginUser(Request $request)
-    {
+    { //
         Log::debug('Showing login user.');
         $userLogged = User::where('email', '=', $request->get('email'))->get();
         if (!$userLogged) abort(403);
