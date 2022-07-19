@@ -5,6 +5,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\OrderController;
+use App\Http\Middleware\EnsureTokenIsValid;
 
 
 /*
@@ -18,35 +19,36 @@ use App\Http\Controllers\OrderController;
 |
 */
 //post routers;
-Route::controller(PostController::class)->group(function () {
-    Route::post('/create', 'createPost')->middleware('test_auth');
-    Route::get('/posts', 'GetAllPost');
-    Route::get('/post/{id}', 'getPostById')->middleware('test_auth');
-    Route::delete('/post/{id}', 'detelePostById')->middleware('test_auth');
-    Route::put('/post/{id}', 'updatePostById')->middleware('test_auth');
-    Route::get('/posts/{id}/user', 'listPostsByUserId')->middleware('test_auth');
-    Route::post('/post/dates', 'findingPostByDates')->middleware('test_auth');
+Route::middleware([EnsureTokenIsValid::class])->group(function () {
+    Route::post('/create', [PostController::class, 'createPost']);
+    Route::get('/posts', [PostController::class, 'GetAllPost']);
+    Route::get('/post/{id}', [PostController::class, 'getPostById']);
+    Route::delete('/post/{id}', [PostController::class, 'detelePostById']);
+    Route::put('/post/{id}', [PostController::class, 'updatePostById']);
+    Route::get('/posts/{id}/user', [PostController::class, 'listPostsByUserId']);
+    Route::post('/post/dates', [PostController::class, 'findingPostByDates']);
 });
 
 //users routers;
-Route::controller(UserController::class)->group(function () {
-    Route::post('/user/create', 'registerUser');
-    Route::post('/user/login', 'loginUser');
+Route::middleware([EnsureTokenIsValid::class])->group(function () {
+    Route::post('/user/create', [UserController::class, 'registerUser'])->withoutMiddleware([EnsureTokenIsValid::class]);
+    Route::post('/user/login', [UserController::class, 'loginUser'])->withoutMiddleware([EnsureTokenIsValid::class]);
+    Route::get('/user/{id}', [UserController::class, 'findUserById']);
 });
 //
 
 //images routers;
-Route::controller(ImageController::class)->group(function () {
-    Route::post('/image', 'creatingNewImage')->middleware('test_auth');
-    Route::delete('/image/{id}', 'deleteImage')->middleware('test_auth');
-    Route::post('/image/{id}/{postId}', 'updateImageCreated')->middleware('test_auth');
-    Route::get('/image/{id}', 'gettingImageById')->middleware('test_auth');
-    Route::put('/several/{id}/images', 'updateManyImages')->middleware('test_auth');
+Route::middleware(EnsureTokenIsValid::class)->group(function () {
+    Route::post('/image', [ImageController::class, 'creatingNewImage']);
+    Route::delete('/image/{id}', [ImageController::class, 'deleteImage']);
+    Route::post('/image/{id}/{postId}', [ImageController::class, 'updateImageCreated']);
+    Route::get('/image/{id}', [ImageController::class, 'gettingImageById']);
+    Route::put('/several/{id}/images', [ImageController::class, 'updateManyImages']);
 });
 
 //order routers;
-Route::controller(OrderController::class)->group(function () {
-    Route::post('/order', 'generateOrder')->middleware('test_auth');
-    Route::put('/order/{id}', 'acceptOrDeclineOrder')->middleware('test_auth');
-    Route::get('/order/{user_id}', 'listingUser')->middleware('test_auth');
+Route::controller(EnsureTokenIsValid::class)->group(function () {
+    Route::post('/order', [OrderController::class, 'generateOrder']);
+    Route::put('/order/{id}', [OrderController::class, 'acceptOrDeclineOrder']);
+    Route::get('/order/{user_id}', [OrderController::class, 'listingUser']);
 });
